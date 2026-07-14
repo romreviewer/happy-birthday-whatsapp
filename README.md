@@ -77,12 +77,29 @@ npm start
 | `npm test` | Run the automated test suite. |
 | `npm run build` | Compile TypeScript into `dist/`. |
 | `npm start` | Run the compiled service. |
+| `npm run birthday:check` | Run one birthday check and exit (run `npm run build` first). |
+
+## GitHub Actions scheduling
+
+This repository includes a GitHub Actions workflow that runs the birthday check
+every day at 9:00 AM Asia/Kolkata (3:30 AM UTC). You can also start it manually
+from the repository's **Actions** tab.
+
+Before enabling it, add these repository secrets under **Settings → Secrets and
+variables → Actions**:
+
+- `MONGO_URI`
+- `MONGO_DB_NAME`
+- `WHATSAPP_GROUP_ID`
+
+The workflow runs `npm ci`, `npm run build`, and `npm run birthday:check`.
 
 ## Production notes
 
 - The bundled WhatsApp client is a mock and only logs messages. Replace it with a real WhatsApp integration before deploying.
 - Do not commit `.env`; it is excluded by `.gitignore`. Use deployment secrets for MongoDB credentials and other sensitive values.
-- Run one long-lived service instance, or add idempotent wish-history storage before running more than one instance, to prevent duplicate messages.
+- Add idempotent wish-history storage before enabling retries or another scheduler,
+  to prevent duplicate messages.
 
 ## Roadmap
 

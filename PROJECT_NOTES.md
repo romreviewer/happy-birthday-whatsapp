@@ -14,6 +14,7 @@ A starter TypeScript bot was created to send birthday wishes to a WhatsApp group
 - Reads active friends from MongoDB when the scheduled check runs
 - Schedules daily checks using the configured cron expression and timezone
 - Validates the cron expression, timezone, and required WhatsApp group ID at startup
+- Includes a GitHub Actions workflow that runs the check daily at 9:00 AM Asia/Kolkata
 
 ## Tech stack
 - Node.js
@@ -47,4 +48,3 @@ npm test && npm run build
 ## Remaining next steps
 - Replace the mock WhatsApp sender with a real WhatsApp integration
 - Add wish-history persistence with an idempotency lock to prevent duplicate sends
-- Deploy the long-running process, or run it from a managed scheduler

@@ -1,9 +1,7 @@
 import 'dotenv/config';
 import cron from 'node-cron';
-import { getBirthdayMatches } from './birthdays/birthday.service.js';
-import { BirthdayDocument, BirthdayRepository } from './database/birthday.repository.js';
-import { connectToMongo } from './database/mongo.js';
-import { generateBirthdayMessage } from './messaging/message-generator.js';
+import { runBirthdayCheck } from './birthdays/birthday-check.js';
+import { BirthdayRepository } from './database/birthday.repository.js';
 import { MockWhatsAppClient } from './messaging/whatsapp-client.js';
 
 const timeZone = process.env.TIMEZONE ?? 'Asia/Kolkata';
@@ -33,31 +31,13 @@ function validateTimeZone(value: string): void {
 
 validateTimeZone(timeZone);
 
-async function runBirthdayCheck(client: MockWhatsAppClient, repository: BirthdayRepository): Promise<void> {
-  const db = await connectToMongo();
-  const friendsCollection = db.collection<BirthdayDocument>('friends');
-  const friends = (await friendsCollection.find({ active: 1 }).toArray()).map((doc) => repository.toFriend(doc));
-  const matches = getBirthdayMatches(friends, new Date(), timeZone);
-
-  if (matches.length === 0) {
-    console.log('No birthdays today.');
-    return;
-  }
-
-  for (const friend of matches) {
-    const message = generateBirthdayMessage(friend);
-    await client.sendGroupMessage(groupId, message);
-    console.log(`Wished ${friend.name}`);
-  }
-}
-
 async function main() {
   const client = new MockWhatsAppClient();
   await client.initialize();
 
   const repository = new BirthdayRepository();
   cron.schedule(cronExpression, () => {
-    void runBirthdayCheck(client, repository).catch((error: unknown) => {
+    void runBirthdayCheck(client, repository, { groupId, timeZone }).catch((error: unknown) => {
       console.error('Birthday check failed', error);
     });
   }, { timezone: timeZone });
